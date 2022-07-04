@@ -43,8 +43,29 @@ resource "yandex_compute_instance" "vm-1" {
   scheduling_policy {
     preemptible = true
   }
+
+  connection {
+    type     = "ssh"
+    user     = "wwbel"
+    private_key = "${file("/Users/wwbel/.ssh/id_rsa")}"
+    host     = self.network_interface.0.nat_ip_address
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+       "sudo apt update"
+      ,"sudo apt install nginx -y"
+      ,"sudo chmod a+w /var/www/html"
+    ]
+  }
+
+  provisioner "file" {
+    source = "index.html"
+    destination = "/var/www/html/index.html"
+  }
 }
 
 output "external_ip_address_vm_1" {
   value = yandex_compute_instance.vm-1.network_interface.0.nat_ip_address
 }
+
